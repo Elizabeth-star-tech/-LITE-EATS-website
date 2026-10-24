@@ -9,22 +9,29 @@ import { useCart } from './context/CartContext.jsx'
 import { categories, foods, promotions, restaurants, testimonials } from './data.js'
 import { calculateDiscount, formatPrice } from './utils.js'
 
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, '')
+
+function currentRoute() {
+  const { pathname, search } = window.location
+  const path = BASE && pathname.startsWith(BASE) ? pathname.slice(BASE.length) || '/' : pathname
+  return `${path}${search}`
+}
+
 function useRoute() {
-  const [route, setRoute] = useState(() => `${window.location.pathname}${window.location.search}`)
+  const [route, setRoute] = useState(currentRoute)
   useEffect(() => {
-    const onPop = () => setRoute(`${window.location.pathname}${window.location.search}`)
+    const onPop = () => setRoute(currentRoute())
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
   }, [])
   const navigate = (path) => {
     const target = path.startsWith('/') ? path : `/${path}`
-    window.history.pushState({}, '', target)
-    setRoute(`${window.location.pathname}${window.location.search}`)
+    window.history.pushState({}, '', `${BASE}${target}`)
+    setRoute(currentRoute())
     if (!target.includes('#')) window.scrollTo({ top: 0, behavior: 'smooth' })
   }
   return [route, navigate]
 }
-
 function SectionHeading({ eyebrow, title, detail, action, onAction }) {
   return <div className="section-heading"><div><span className="eyebrow">{eyebrow}</span><h2>{title}</h2>{detail && <p>{detail}</p>}</div>{action && <button className="text-link" onClick={onAction}>{action}<ArrowUpRight size={17} /></button>}</div>
 }
